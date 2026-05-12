@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ALIAS — Maritime Edition | Realistic Ocean</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            background: #0a2a3a;
+            overflow-x: hidden;
+        }
+        
+        /* REALISTIC OCEAN BACKGROUND */
+        .ocean-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        /* Sky gradient */
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 55%;
+            background: linear-gradient(180deg, #c8e4f0 0%, #b0d4e8 30%, #8fc0d8 60%, #6aaec8 100%);
+        }
+        
+        /* Sun with halo */
+        .sun {
+            position: absolute;
+            top: 13%;
+            right: 12%;
+            width: 64px;
+            height: 64px;
+            background: radial-gradient(circle, #fff8dc 0%, #ffe48a 45%, #f5c150 80%, transparent 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 0 30px 12px rgba(255, 220, 130, 0.45),
+                0 0 70px 40px rgba(255, 200, 100, 0.18),
+                0 0 140px 80px rgba(255, 200, 100, 0.08);
+            animation: sunGlow 6s ease-in-out infinite;
+        }
+
+        @keyframes sunGlow {
+            0%, 100% { opacity: 0.92; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.04); }
+        }
+
+        /* Soft clouds for sky depth */
+        .cloud {
+            position: absolute;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.2) 50%, transparent 75%);
+            border-radius: 50%;
+            filter: blur(3px);
+            pointer-events: none;
+        }
+        .cloud-1 { top: 8%;  left: 5%;  width: 180px; height: 50px; opacity: 0.7; animation: cloudDrift 90s linear infinite; }
+        .cloud-2 { top: 22%; left: 35%; width: 140px; height: 38px; opacity: 0.55; animation: cloudDrift 120s linear infinite reverse; }
+        .cloud-3 { top: 5%;  left: 60%; width: 220px; height: 55px; opacity: 0.6; animation: cloudDrift 150s linear infinite; }
+
+        @keyframes cloudDrift {
+            0%   { transform: translateX(-20px); }
+            100% { transform: translateX(40px); }
+        }
+
+        /* Cargo ship sailing across the horizon */
+        .cargo-ship {
+            position: absolute;
+            bottom: 50%;
+            width: 160px;
+            height: 50px;
+            opacity: 0.85;
+            animation: shipSail 75s linear infinite;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+        }
+        .cargo-ship-2 {
+            bottom: 28%;
+            width: 140px;
+            opacity: 0.7;
+            animation: shipSail 95s linear infinite;
+            animation-delay: -40s;
+        }
+
+        @keyframes shipSail {
+            0%   { left: -180px; }
+            100% { left: 110%; }
+        }
+
+        /* Lighthouse on a small rocky island */
+        .lighthouse {
+            position: absolute;
+            bottom: 46%;
+            left: 9%;
+            width: 70px;
+            height: 98px;
+            opacity: 0.95;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35));
+            z-index: 2;
+        }
+        
+        /* Deep water layer */
+        .water-deep {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(180deg, #2a7aaa 0%, #1a5a7a 30%, #0e3a5a 70%, #0a2a3a 100%);
+        }
+
+        /* Shimmer texture spread across all water surface */
+        .water-shimmer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.018 0.07' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+            background-size: 800px 500px;
+            mix-blend-mode: screen;
+            opacity: 0.22;
+            animation: shimmerDrift 35s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmerDrift {
+            0%   { background-position: 0 0; }
+            100% { background-position: 400px -200px; }
+        }
+
+        /* Ripple lines distributed across the entire water area */
+        .ripple {
+            position: absolute;
+            left: 0;
+            width: 200%;
+            height: 14px;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 14'><path d='M0,7 Q25,3 50,7 T100,7 T150,7 T200,7 T250,7 T300,7 T350,7 T400,7' stroke='rgba(200,230,245,0.5)' stroke-width='1' fill='none'/></svg>");
+            background-repeat: repeat-x;
+            background-size: 400px 14px;
+            pointer-events: none;
+        }
+        .ripple-1 { bottom: 47%; opacity: 0.55; animation: rippleSlide 40s linear infinite; }
+        .ripple-2 { bottom: 41%; opacity: 0.5;  animation: rippleSlide 50s linear infinite reverse; }
+        .ripple-3 { bottom: 35%; opacity: 0.55; animation: rippleSlide 32s linear infinite; }
+        .ripple-4 { bottom: 28%; opacity: 0.5;  animation: rippleSlide 45s linear infinite reverse; }
+        .ripple-5 { bottom: 22%; opacity: 0.6;  animation: rippleSlide 28s linear infinite; }
+        .ripple-6 { bottom: 16%; opacity: 0.55; animation: rippleSlide 38s linear infinite reverse; }
+        .ripple-7 { bottom: 10%; opacity: 0.65; animation: rippleSlide 22s linear infinite; }
+
+        @keyframes rippleSlide {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Scattered sparkle highlights across water */
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 230, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 6px 2px rgba(255, 255, 220, 0.5);
+            pointer-events: none;
+            animation: sparkleFade 4s ease-in-out infinite;
+        }
+        .sparkle-1 { bottom: 44%; left: 20%; animation-delay: 0s; }
+        .sparkle-2 { bottom: 38%; left: 65%; animation-delay: -1.2s; }
+        .sparkle-3 { bottom: 30%; left: 40%; animation-delay: -2.4s; }
+        .sparkle-4 { bottom: 25%; left: 80%; animation-delay: -0.8s; }
+        .sparkle-5 { bottom: 18%; left: 15%; animation-delay: -3.1s; }
+        .sparkle-6 { bottom: 12%; left: 55%; animation-delay: -1.7s; }
+        .sparkle-7 { bottom: 42%; left: 88%; animation-delay: -2.9s; }
+
+        @keyframes sparkleFade {
+            0%, 100% { opacity: 0;   transform: scale(0.5); }
+            50%      { opacity: 0.9; transform: scale(1.2); }
+        }
+        
+        /* Wave layers for realistic animation */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background-repeat: repeat-x;
+            pointer-events: none;
+        }
+        
+        .wave1 {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,64L80,58.7C160,53,320,43,480,48C640,53,800,75,960,80C1120,85,1280,75,1360,69.3L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="rgba(100, 180, 220, 0.5)"/></svg>') repeat-x;
+            background-size: 1200px 100px;
+            bottom: 0;
+            height: 100px;
+            animation: waveMove 8s linear infinite;
+            opacity: 0.7;
+        }
+        
+        .wave2 {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,96L80,90.7C160,85,320,75,480,80C640,85,800,107,960,112C1120,117,1280,107,1360,101.3L1440,96L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="rgba(80, 160, 200, 0.45)"/></svg>') repeat-x;
+            background-size: 1400px 110px;
+            bottom: 10px;
+            height: 110px;
+            animation: waveMove 12s linear infinite reverse;
+            opacity: 0.6;
+        }
+        
+        .wave3 {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,32L80,26.7C160,21,320,11,480,16C640,21,800,43,960,48C1120,53,1280,43,1360,37.3L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="rgba(130, 210, 240, 0.35)"/></svg>') repeat-x;
+            background-size: 1600px 80px;
+            bottom: 20px;
+            height: 80px;
+            animation: waveMove 18s linear infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes waveMove {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1200px; }
+        }
+        
+        /* Foam particles */
+        .foam {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: radial-gradient(ellipse at 20% 50%, rgba(255,255,245,0.3) 0%, transparent 70%);
+            filter: blur(2px);
+            animation: foamFade 3s ease-in-out infinite;
+        }
+        
+        @keyframes foamFade {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Light reflection on water */
+        .water-gleam {
+            position: absolute;
+            bottom: 20%;
+            left: 10%;
+            width: 200px;
+            height: 80px;
+            background: radial-gradient(ellipse, rgba(255,255,200,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(15px);
+            animation: gleamMove 7s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes gleamMove {
+            0%, 100% { transform: translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateX(30px) scale(1.2); opacity: 0.5; }
+        }
+        
+        .water-gleam2 {
+            left: auto;
+            right: 15%;
+            bottom: 25%;
+            animation-delay: -3s;
+        }
+        
+        /* Game container */
+        .game-box {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Light theme cards with slight transparency */
+        .card-light {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-glow {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            font-family: inherit;
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+
+        input {
+            transition: all 0.2s;
+            background: rgba(245, 248, 252, 0.95);
+            border: 1px solid #cbdbe0;
+            color: #1a2a3a;
+        }
+        input:focus {
+            outline: none;
+            border-color: #2c7cb6;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 10px;
+            background: #d0dfec;
+        }
+        .range-slider:focus {
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #2c7cb6;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+
+        .word-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(240,248,255,0.96));
+            border-radius: 32px;
+            padding: 2rem 1rem;
+            text-align: center;
+            border: 1px solid rgba(44, 124, 182, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+        }
+        
+        .word-pop {
+            animation: wordPop 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+        
+        @keyframes wordPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .flash-green {
+            animation: flashCorrect 0.25s ease-out;
+        }
+        
+        @keyframes flashCorrect {
+            0% { background-color: rgba(46, 204, 113, 0); }
+            30% { background-color: rgba(46, 204, 113, 0.3); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0.2); }
+            100% { background-color: rgba(46, 204, 113, 0); }
+        }
+        
+        .flash-orange {
+            animation: flashSkip 0.25s ease-out;
+        }
+        
+        @keyframes flashSkip {
+            0% { background-color: rgba(230, 126, 34, 0); }
+            30% { background-color: rgba(230, 126, 34, 0.25); }
+            100% { background-color: rgba(230, 126, 34, 0); }
+        }
+        
+        .victory-pulse {
+            animation: victoryPulse 0.6s ease-in-out;
+        }
+        
+        @keyframes victoryPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); text-shadow: 0 0 15px #2c7cb6; }
+            100% { transform: scale(1); }
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e0eaf2;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        /* small ship silhouette on horizon */
+        .ship-silhouette {
+            position: absolute;
+            bottom: 38%;
+            right: 5%;
+            font-size: 28px;
+            opacity: 0.2;
+            pointer-events: none;
+            animation: sail 20s linear infinite;
+        }
+        
+        @keyframes sail {
+            0% { transform: translateX(0); opacity: 0.15; }
+            50% { transform: translateX(-20px); opacity: 0.25; }
+            100% { transform: translateX(0); opacity: 0.15; }
+        }
+        
+        /* floating birds */
+        .bird {
+            position: absolute;
+            top: 12%;
+            left: 20%;
+            font-size: 14px;
+            opacity: 0.25;
+            pointer-events: none;
+            animation: fly 12s ease-in-out infinite;
+        }
+        
+        .bird2 {
+            top: 18%;
+            left: 70%;
+            animation-delay: -4s;
+            animation-duration: 15s;
+        }
+        
+        @keyframes fly {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
+            50% { transform: translateY(-15px) translateX(10px); opacity: 0.3; }
+        }
+
+        /* FIREWORKS CANVAS */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean-bg">
+        <div class="sky"></div>
+        <div class="sun"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <svg class="cargo-ship" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 45 L8 55 L192 55 L195 45 Z" fill="#0e2a3a"/>
+            <rect x="20" y="36" width="14" height="9" fill="#c44e3a"/>
+            <rect x="35" y="36" width="14" height="9" fill="#1f6a8a"/>
+            <rect x="50" y="36" width="14" height="9" fill="#3a8b6e"/>
+            <rect x="65" y="36" width="14" height="9" fill="#c44e3a"/>
+            <rect x="80" y="36" width="14" height="9" fill="#1f6a8a"/>
+            <rect x="20" y="27" width="14" height="9" fill="#1f6a8a"/>
+            <rect x="35" y="27" width="14" height="9" fill="#3a8b6e"/>
+            <rect x="50" y="27" width="14" height="9" fill="#c44e3a"/>
+            <rect x="65" y="27" width="14" height="9" fill="#3a8b6e"/>
+            <rect x="80" y="27" width="14" height="9" fill="#c44e3a"/>
+            <rect x="105" y="20" width="20" height="25" fill="#0e2a3a"/>
+            <rect x="110" y="14" width="10" height="8" fill="#0e2a3a"/>
+            <rect x="113" y="6" width="3" height="10" fill="#0e2a3a"/>
+        </svg>
+        <svg class="cargo-ship cargo-ship-2" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 45 L8 55 L192 55 L195 45 Z" fill="#0e2a3a"/>
+            <rect x="25" y="33" width="16" height="12" fill="#0e2a3a"/>
+            <rect x="45" y="33" width="16" height="12" fill="#0e2a3a"/>
+            <rect x="65" y="33" width="16" height="12" fill="#0e2a3a"/>
+            <rect x="85" y="33" width="16" height="12" fill="#0e2a3a"/>
+            <rect x="115" y="22" width="18" height="23" fill="#0e2a3a"/>
+            <rect x="120" y="12" width="3" height="10" fill="#0e2a3a"/>
+        </svg>
+        <div class="water-deep"></div>
+        <div class="water-shimmer"></div>
+        <div class="ripple ripple-1"></div>
+        <div class="ripple ripple-2"></div>
+        <div class="ripple ripple-3"></div>
+        <div class="ripple ripple-4"></div>
+        <div class="ripple ripple-5"></div>
+        <div class="ripple ripple-6"></div>
+        <div class="ripple ripple-7"></div>
+        <div class="sparkle sparkle-1"></div>
+        <div class="sparkle sparkle-2"></div>
+        <div class="sparkle sparkle-3"></div>
+        <div class="sparkle sparkle-4"></div>
+        <div class="sparkle sparkle-5"></div>
+        <div class="sparkle sparkle-6"></div>
+        <div class="sparkle sparkle-7"></div>
+        <div class="water-gleam"></div>
+        <div class="water-gleam water-gleam2"></div>
+        <svg class="lighthouse" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="134" rx="46" ry="4" fill="#2a3a4a" opacity="0.45"/>
+            <path d="M3 130 Q18 110 32 115 Q44 105 50 110 Q56 105 68 115 Q82 110 97 130 Z" fill="#6e7e8e"/>
+            <path d="M14 130 Q26 117 36 121 Q46 115 50 118 Q54 115 64 121 Q74 117 86 130 Z" fill="#90a0b0"/>
+            <ellipse cx="22" cy="128" rx="6" ry="2" fill="#5a6a7a"/>
+            <ellipse cx="78" cy="128" rx="6" ry="2" fill="#5a6a7a"/>
+
+            <rect x="34" y="106" width="32" height="6" fill="#dcdcdc"/>
+            <rect x="34" y="105" width="32" height="2" fill="#b0b0b0"/>
+
+            <rect x="38" y="22" width="24" height="84" fill="#fafafa"/>
+            <rect x="38" y="22" width="24" height="11" fill="#e63838"/>
+            <rect x="38" y="44" width="24" height="11" fill="#e63838"/>
+            <rect x="38" y="66" width="24" height="11" fill="#e63838"/>
+            <rect x="38" y="88" width="24" height="11" fill="#e63838"/>
+
+            <path d="M46 106 L46 96 Q46 92 50 92 Q54 92 54 96 L54 106 Z" fill="#2a1810"/>
+            <rect x="48" y="38" width="4" height="5" rx="0.5" fill="#2a1810"/>
+            <rect x="48" y="60" width="4" height="5" rx="0.5" fill="#2a1810"/>
+            <rect x="48" y="82" width="4" height="5" rx="0.5" fill="#2a1810"/>
+
+            <rect x="32" y="18" width="36" height="4" fill="#c52828"/>
+            <rect x="32" y="17" width="36" height="1.2" fill="#8a1818"/>
+            <line x1="34" y1="13" x2="34" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="40" y1="13" x2="40" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="46" y1="13" x2="46" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="50" y1="13" x2="50" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="54" y1="13" x2="54" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="60" y1="13" x2="60" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="66" y1="13" x2="66" y2="18" stroke="#2a1810" stroke-width="0.7"/>
+            <line x1="34" y1="13" x2="66" y2="13" stroke="#2a1810" stroke-width="0.7"/>
+
+            <rect x="40" y="8" width="20" height="5" fill="#fff5b0"/>
+            <rect x="42" y="9" width="2" height="3" fill="#ffd870"/>
+            <rect x="46" y="9" width="2" height="3" fill="#ffd870"/>
+            <rect x="50" y="9" width="2" height="3" fill="#ffd870"/>
+            <rect x="54" y="9" width="2" height="3" fill="#ffd870"/>
+            <rect x="40" y="6" width="20" height="2" fill="#c52828"/>
+
+            <path d="M37 8 L63 8 L60 2 Q50 -1 40 2 Z" fill="#c52828"/>
+            <circle cx="50" cy="1" r="1.2" fill="#ffd700"/>
+        </svg>
+        <div class="bird">🕊️</div>
+        <div class="bird bird2">🕊️</div>
+    </div>
+
+    <canvas id="fireworksCanvas"></canvas>
+    <div class="game-box" id="root"></div>
+
+    <script>
+        // ==================== ULTIMATE WORD LIST ====================
+        const WORDS_ULTIMATE = [
+            "Port of Shanghai", "Port of Singapore", "Port of Rotterdam", "Port of Hamburg",
+            "Port of Antwerp", "Port of Los Angeles", "Port of Long Beach", "Port of New York",
+            "Port of Dubai", "Port of Hong Kong", "Port of Busan", "Port of Tokyo",
+            "Port of Vancouver", "Port of Sydney", "Port of Barcelona", "Port of Valencia",
+            "Port of Piraeus", "Port of Jebel Ali", "Port of Colombo", "Port of Santos",
+            "Maersk", "MSC", "CMA CGM", "Hapag Lloyd", "COSCO", "Evergreen", "FedEx", "DHL", "UPS",
+            "Container", "Cargo", "Warehouse", "Forklift", "Pallet", "Barcode", "Shipment", "Delivery",
+            "Tracking number", "Last mile", "Customs", "Import", "Export",
+            "United States", "Canada", "Mexico", "Brazil", "United Kingdom", "Germany",
+            "France", "Italy", "Spain", "Netherlands", "Japan", "China", "India", "South Korea",
+            "Australia", "Turkey", "United Arab Emirates", "Singapore", "Thailand", "Vietnam",
+            "Toyota", "Honda", "Nissan", "Ford", "Chevrolet", "Tesla", "Volkswagen", "BMW", "Mercedes Benz",
+            "Audi", "Porsche", "Ferrari", "Lamborghini", "Volvo", "Hyundai", "Kia",
+            "Nike", "Adidas", "Apple", "Samsung", "Sony", "Microsoft", "Google", "Amazon", "Netflix",
+            "Coca Cola", "McDonald's", "Starbucks", "Disney", "IKEA",
+            "Customs", "Waybill", "Invoice", "Bill of Lading", "SKU (Stock Keeping Unit)",
+            "Quarantine", "LTL", "Consolidation", "Freight", "Warehouse",
+            "Inventory", "Barcode", "FTL", "Incoterms", "Shipment",
+            "Certificate of Origin", "Cargo insurance", "Delivery time", "Last mile delivery",
+            "LIFO (Last In, First Out)", "FIFO (First In, First Out)", "Distribution Center",
+            "Air Waybill (AWB)", "Container", "Pallet", "Demurrage", "Export", "Import",
+            "OTIF (On Time In Full)", "Delivery drone", "Force majeure", "Freight forwarder",
+            "Cross-docking", "FOB", "CIF", "DDP", "DHL", "Maersk", "FedEx", "UPS",
+            "Amazon Logistics", "Kuehne+Nagel",
+            "E-commerce", "Electric truck", "Green logistics", "Autonomous vehicle",
+            "Box", "Map", "Port", "Fuel", "Schedule", "Stamp", "Receipt", "Signature",
+            "Address", "Package", "Wrapping", "Bubble wrap", "Sticker", "Contract", "Label",
+            "QR code", "Oversized cargo", "Special cargo", "Fragile items", "Luxury goods",
+            "Bulk cargo", "Liquid cargo", "Perishables", "Valuable cargo",
+            "IoT sensor", "Bottleneck", "Just-in-time", "Cybersecurity",
+            "Suez Canal", "Panama Canal", "Bosporus", "Port of Ambarlı",
+            "Shipper", "Consignee", "Carrier", "Liner", "Freight Forwarder", "3PL", "Supply chain", 
+            "Green logistics", "Reverse logistics", "Intermodal transport", "Multimodal transport", 
+            "Last-mile delivery", "Warehouse", "Inventory", "Distribution center", "Cold chain", 
+            "Port congestion", "Customs Clearance", "Bill of Lading (B/L)", "Incoterms", 
+            "Just-in-Time (JIT)", "Carbon Footprint", "Smart Port", "Drone Delivery", "Automation", 
+            "Supply Chain Resilience", "Hub-and-Spoke System", "Tracking System", "Sustainability", 
+            "Transit Time", "Demand Forecasting", "Lead Time", "Procurement", "Cargo", 
+            "Containerization", "Consolidation", "Milk run", "Inbound Logistics", "Outbound Logistics", 
+            "Artificial Intelligence (AI)", "Demurrage", "Order Fulfillment", "Vessel", "Break Bulk", 
+            "Customs", "EXW"
+        ];
+
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // Light mode team colors
+        const TEAM = [
+            { accent: "#1e6fa8", mid: "#2d7dd2", light: "#e8f1f8", dark: "#0a4a6e", text: "#1a5a8a", glow: "rgba(30,111,168,0.2)" },
+            { accent: "#2f8b6e", mid: "#3aa57f", light: "#e8f4f0", dark: "#1a5a48", text: "#1e6a4a", glow: "rgba(47,139,110,0.2)" },
+        ];
+
+        // Audio context initialization
+        let audioCtx = null;
+        function initAudio() { if (!audioCtx && window.AudioContext) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+        // Victory melody for Correct Answer
+        function playCorrectSound() {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const startTime = audioCtx.currentTime + (i * 0.08);
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.2);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.2);
+                });
+            } catch(e) {}
+        }
+
+        // Failure sound for Skip
+        function playSkipSound() {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch(e) {}
+        }
+
+        function playGameEndSound() { try { initAudio(); if (!audioCtx) return; const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination); osc1.type = 'sine'; osc2.type = 'sine'; osc1.frequency.value = 523.25; osc2.frequency.value = 659.25; gain.gain.value = 0.2; osc1.start(); osc2.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8); osc1.stop(audioCtx.currentTime + 0.8); osc2.stop(audioCtx.currentTime + 0.8); } catch(e) {} }
+
+        // ---------- STATE ----------
+        let screen = "setup";
+        let teamNames = ["Blue Crew", "Green Crew"];
+        let targetScore = 15;
+        let roundTimeSec = 60;
+        let scores = [0, 0];
+        let turnIndex = 0;
+        let wordsList = [];
+        let wordIndex = 0;
+        let timeLeft = 60;
+        let roundCorrect = 0;
+        let roundSkipped = 0;
+        let correctRef = 0;
+        let timerInterval = null;
+
+        const currentTeam = () => turnIndex % 2;
+        const currentRoundNum = () => Math.floor(turnIndex / 2) + 1;
+        
+        // --- UPDATED GAME END LOGIC ---
+        function isGameFinished() {
+            // End only if someone hit target AND Team 2 has finished their turn (equal rounds)
+            const someoneReachedTarget = scores[0] >= targetScore || scores[1] >= targetScore;
+            const roundFinished = (turnIndex % 2 === 1); 
+            return someoneReachedTarget && roundFinished;
+        }
+
+        function checkGameWinner() {
+            if (scores[0] > scores[1]) return 0;
+            if (scores[1] > scores[0]) return 1;
+            return -2; // Draw
+        }
+
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+        function startTimer() {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                if (screen !== "playing") return;
+                if (timeLeft <= 1) {
+                    stopTimer();
+                    if (screen === "playing") {
+                        scores[currentTeam()] += correctRef;
+                        screen = "roundEnd"; 
+                        renderApp();
+                    }
+                } else { timeLeft--; renderApp(); }
+            }, 1000);
+        }
+
+        function startGame() { scores = [0, 0]; turnIndex = 0; screen = "ready"; renderApp(); }
+        
+        function beginRound() {
+            wordsList = shuffleArray([...WORDS_ULTIMATE]);
+            wordIndex = 0;
+            timeLeft = roundTimeSec;
+            roundCorrect = 0;
+            roundSkipped = 0;
+            correctRef = 0;
+            screen = "playing";
+            renderApp();
+            startTimer();
+        }
+        
+        function markCorrect() {
+            if (screen !== "playing") return;
+            playCorrectSound();
+            const correctBtn = document.getElementById("correctBtn");
+            if (correctBtn) { correctBtn.classList.add("flash-green"); setTimeout(() => correctBtn.classList.remove("flash-green"), 250); }
+            const wordDiv = document.querySelector(".word-card");
+            if (wordDiv) { wordDiv.classList.add("word-pop"); setTimeout(() => wordDiv.classList.remove("word-pop"), 200); }
+            
+            correctRef++; roundCorrect = correctRef;
+            if (wordIndex + 1 < wordsList.length) wordIndex++;
+            else { wordsList = shuffleArray([...WORDS_ULTIMATE]); wordIndex = 0; }
+            renderApp();
+        }
+        
+        function markSkip() {
+            if (screen !== "playing") return;
+            playSkipSound();
+            const skipBtn = document.getElementById("skipBtn");
+            if (skipBtn) { skipBtn.classList.add("flash-orange"); setTimeout(() => skipBtn.classList.remove("flash-orange"), 250); }
+            
+            roundSkipped++;
+            if (wordIndex + 1 < wordsList.length) wordIndex++;
+            else { wordsList = shuffleArray([...WORDS_ULTIMATE]); wordIndex = 0; }
+            renderApp();
+        }
+        
+        function nextTurn() {
+            stopTimer();
+            if (isGameFinished()) {
+                screen = "gameOver";
+                playGameEndSound();
+            } else {
+                turnIndex++;
+                screen = "ready";
+            }
+            renderApp();
+        }
+        
+        function resetToSetup() { stopTimer(); stopFireworks(); screen = "setup"; teamNames = ["Blue Crew", "Green Crew"]; targetScore = 15; roundTimeSec = 60; scores = [0,0]; turnIndex = 0; renderApp(); }
+
+        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
+
+        function renderHeader(round = null, total = null) {
+            let roundHtml = "";
+            if (round !== null) {
+                roundHtml = `<div style="margin-top: 6px; font-size: 13px; font-weight: 500; color: #2a5a7a; background: rgba(255,255,255,0.5); display: inline-block; padding: 2px 16px; border-radius: 20px;">Round <strong style="color: #1e6fa8;">${round}</strong></div>`;
+            }
+            return `
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-bottom: 2px;">
+                        <span style="font-size: 34px; font-weight: 800; letter-spacing: 5px; color: #0a3a52; text-shadow: 2px 2px 4px rgba(255,255,255,0.5);">ALIAS</span>
+                    </div>
+                    ${roundHtml}
+                </div>
+            `;
+        }
+
+        // SETUP
+        function renderSetup() {
+            return `
+                ${renderHeader()}
+                <div class="card-light" style="padding: 1.5rem 1.2rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div><div style="font-size: 13px; font-weight: 600; color: #2c7cb6;">⚙️ GAME SETUP</div></div>
+                        <div style="background: #e8f1f8; padding: 5px 12px; border-radius: 40px; font-size: 18px;">⚓</div>
+                    </div>
+                    ${[0,1].map(i => `
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 11px; font-weight: 600; color: ${TEAM[i].text};">${i===0?'🔵 Team 1':'🟢 Team 2'}</label>
+                            <input type="text" id="teamName${i}" value="${escapeHtml(teamNames[i])}" style="width:100%; padding: 10px 14px; background: rgba(245,248,252,0.95); border: 1px solid ${TEAM[i].accent}40; border-radius: 40px; color: #1a2a3a; font-size: 14px;">
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin: 1.2rem 0 0.8rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="font-size:12px;">🏆 WINNING SCORE</span><span id="targetValue" style="background: rgba(240,245,250,0.9); padding:2px 14px; border-radius:30px; font-weight:700; color:#1e6fa8;">${targetScore}</span></div>
+                        <input type="range" id="targetSlider" min="5" max="35" step="1" value="${targetScore}" class="range-slider">
+                    </div>
+                    
+                    <div style="margin: 1rem 0 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="font-size:12px;">⏱️ ROUND TIME</span><span id="timeValue" style="background: rgba(240,245,250,0.9); padding:2px 12px; border-radius:30px; color:#1e6fa8;">${roundTimeSec}s</span></div>
+                        <input type="range" id="timeSlider" min="30" max="90" step="10" value="${roundTimeSec}" class="range-slider">
+                    </div>
+                    
+                    <button id="startGameBtn" style="width:100%; background: linear-gradient(105deg, #1e6fa8, #155a8a); border: none; border-radius: 50px; padding: 14px; font-weight: 700; font-size: 16px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <span>⚓</span> START GAME
+                    </button>
+                </div>
+            `;
+        }
+        
+        function attachSetupEvents() {
+            document.getElementById("targetSlider")?.addEventListener("input", (e) => { targetScore = parseInt(e.target.value); document.getElementById("targetValue").innerText = targetScore; });
+            document.getElementById("timeSlider")?.addEventListener("input", (e) => { roundTimeSec = parseInt(e.target.value); document.getElementById("timeValue").innerText = roundTimeSec+"s"; });
+            document.getElementById("startGameBtn")?.addEventListener("click", () => {
+                teamNames = [document.getElementById("teamName0")?.value.trim() || "Blue Crew", document.getElementById("teamName1")?.value.trim() || "Green Crew"];
+                startGame();
+            });
+        }
+
+        // READY
+        function renderReady() {
+            const idx = currentTeam();
+            const col = TEAM[idx];
+            return `
+                ${renderHeader(currentRoundNum())}
+                <div class="card-light" style="padding: 1.2rem; text-align: center; border-left: 4px solid ${col.accent};">
+                    <div style="font-size: 11px; font-weight: 600; color: ${col.text};">🎤 CURRENT TURN</div>
+                    <div style="font-size: 28px; font-weight: 700; margin: 6px 0; color: #1a2a3a;">${escapeHtml(teamNames[idx])}</div>
+                    <div style="background: ${col.accent}15; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px;">explain without the word</div>
+                </div>
+                
+                <div class="card-glow" style="padding: 1rem; margin: 1rem 0;">
+                    <div style="font-weight:600; text-align:center; font-size:11px; color:#4a6a8a;">📊 STANDINGS</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        ${[0,1].map(i => `<div style="text-align:center;"><strong style="color:${TEAM[i].accent};">${escapeHtml(teamNames[i])}</strong><div style="font-size: 36px; font-weight:800; color:#1a4a6a;">${scores[i]}</div><div style="font-size:9px;">🎯 ${targetScore}</div></div>`).join('')}
+                    </div>
+                </div>
+                
+                <button id="beginRoundBtn" style="width:100%; background: linear-gradient(95deg, ${col.dark}, ${col.accent}); border: none; border-radius: 50px; padding: 14px; font-weight: bold; font-size: 16px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">🚀 START ROUND</button>
+            `;
+        }
+        function attachReadyEvents() { document.getElementById("beginRoundBtn")?.addEventListener("click", () => beginRound()); }
+
+        // PLAYING
+        function renderPlaying() {
+            const timerPercent = Math.max(0, (timeLeft / roundTimeSec) * 100);
+            const timerColor = timeLeft > 20 ? "#2f8b6e" : timeLeft > 8 ? "#d4af37" : "#d64a4a";
+            const currentWord = wordsList[wordIndex] || "READY";
+            let wordFontSize = currentWord.length > 22 ? "24px" : (currentWord.length > 15 ? "30px" : "40px");
+            
+            return `
+                <div>
+                    <div style="background: rgba(224,234,242,0.8); border-radius: 20px; height: 6px; margin-bottom: 0.8rem;"><div style="width: ${timerPercent}%; background: ${timerColor}; height: 100%; border-radius: 20px;"></div></div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem;">
+                        <div style="background: rgba(240,245,250,0.9); border-radius: 30px; padding: 4px 12px;"><span style="font-weight:700; color:#2f8b6e;">✓ ${roundCorrect}</span>  <span style="color:#d4af37;">✗ ${roundSkipped}</span></div>
+                        <div style="font-size: 52px; font-weight: 800; font-feature-settings: 'tnum'; color: ${timerColor};">${timeLeft}</div>
+                        <div style="width: 50px;"></div>
+                    </div>
+                    
+                    <div class="word-card">
+                        <div style="font-size: 10px; letter-spacing: 2px; color: #5a8aaa;">MARITIME CHALLENGE</div>
+                        <div style="font-size: ${wordFontSize}; font-weight: 800; color: #1a4a6a; text-transform: uppercase; margin-top: 18px; word-break: break-word;">${escapeHtml(currentWord)}</div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; margin-top: 24px;">
+                        <button id="skipBtn" style="flex:1; background: rgba(240,244,248,0.95); border: 1px solid #cbdbe0; border-radius: 50px; padding: 14px 0; font-weight: 600; font-size: 16px; color: #5a7a9a; display: flex; align-items: center; justify-content: center; gap: 8px;"><span>⏩</span> SKIP</button>
+                        <button id="correctBtn" style="flex:1; background: linear-gradient(135deg, #2f8b6e, #3aa57f); border: none; border-radius: 50px; padding: 14px 0; font-weight: 700; font-size: 16px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;"><span>✅</span> CORRECT</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function attachPlayingEvents() {
+            document.getElementById("skipBtn")?.addEventListener("click", () => markSkip());
+            document.getElementById("correctBtn")?.addEventListener("click", () => markCorrect());
+        }
+
+        // ROUND END
+        function renderRoundEnd() {
+            const idx = currentTeam();
+            const nextIsLastChance = (scores[0] >= targetScore && idx === 0);
+            
+            return `
+                ${renderHeader(currentRoundNum())}
+                <div class="card-light" style="padding: 1.2rem; text-align: center;">
+                    <div style="font-size: 28px;">⏰</div>
+                    <div style="font-size: 15px; font-weight: 600; color: ${TEAM[idx].accent};">TIME'S UP — ${escapeHtml(teamNames[idx])}</div>
+                    <div style="display: flex; gap: 30px; justify-content: center; margin-top: 14px;">
+                        <div><div style="font-size:10px;">✅ GUESSED</div><div style="font-size: 38px; font-weight:800;">${roundCorrect}</div></div>
+                    </div>
+                </div>
+                ${nextIsLastChance ? `<div style="background:#fff3cd; color:#856404; padding: 10px; border-radius:15px; text-align:center; font-size:12px; margin: 10px 0; font-weight:600;">⚠️ LAST CHANCE FOR ${escapeHtml(teamNames[1])}!</div>` : ''}
+                <div class="card-glow" style="padding: 1rem; margin: 1rem 0;">
+                    <div style="display: flex; gap: 10px;">
+                        ${[0,1].map(i => `<div style="flex:1; background: rgba(245,248,252,0.9); border-radius: 24px; padding: 10px; text-align:center;"><strong style="color:${TEAM[i].accent};">${escapeHtml(teamNames[i])}</strong><div style="font-size: 28px; font-weight:800; color:#1a4a6a;">${scores[i]}</div></div>`).join('')}
+                    </div>
+                </div>
+                <button id="nextTurnBtn" style="width:100%; background: #1e6fa8; border: none; border-radius: 50px; padding: 14px; font-weight: bold; color: white;">CONTINUE</button>
+            `;
+        }
+        function attachRoundEndEvents() { document.getElementById("nextTurnBtn")?.addEventListener("click", () => nextTurn()); }
+
+        // GAME OVER
+        function renderGameOver() {
+            const winnerIdx = checkGameWinner();
+            return `
+                <div class="card-light" style="padding: 2rem; text-align: center;" class="victory-pulse">
+                    <div style="font-size: 48px;">🏆</div>
+                    <div style="font-size: 24px; font-weight: 800; margin: 8px 0;">${winnerIdx === -2 ? "IT'S A DRAW!" : "FINAL VICTORY"}</div>
+                    ${winnerIdx >= 0 ? `<div style="font-size: 22px; font-weight: 700; background: ${TEAM[winnerIdx].accent}15; display: inline-block; padding: 6px 24px; border-radius: 40px; color: ${TEAM[winnerIdx].accent};">${escapeHtml(teamNames[winnerIdx])}</div>` : ''}
+                </div>
+                <div style="display: flex; gap: 16px; margin: 1rem 0;">
+                    ${[0,1].map(i => `<div style="flex:1; background: ${winnerIdx===i ? TEAM[i].light : "rgba(245,248,252,0.9)"}; border-radius: 32px; padding: 1rem; text-align:center; border:${winnerIdx===i ? `1px solid ${TEAM[i].accent}` : "none"};"><strong style="color:${TEAM[i].accent};">${escapeHtml(teamNames[i])}</strong><div style="font-size: 44px; font-weight:800; color:#1a4a6a;">${scores[i]}</div></div>`).join('')}
+                </div>
+                <button id="playAgainBtn" style="width:100%; background: #1e6fa8; border: none; border-radius: 50px; padding: 14px; font-weight: bold; color: white;">🔄 NEW GAME</button>
+            `;
+        }
+        function attachGameOverEvents() { document.getElementById("playAgainBtn")?.addEventListener("click", () => resetToSetup()); }
+
+        function renderApp() {
+            const root = document.getElementById("root");
+            if (!root) return;
+            if (screen === "setup") { root.innerHTML = renderSetup(); attachSetupEvents(); }
+            else if (screen === "ready") { root.innerHTML = renderReady(); attachReadyEvents(); }
+            else if (screen === "playing") { root.innerHTML = renderPlaying(); attachPlayingEvents(); }
+            else if (screen === "roundEnd") { root.innerHTML = renderRoundEnd(); attachRoundEndEvents(); }
+            else if (screen === "gameOver") { 
+                root.innerHTML = renderGameOver(); 
+                attachGameOverEvents(); 
+                const winnerIdx = checkGameWinner();
+                // Запускаем салют с цветом команды
+                initFireworks(winnerIdx >= 0 ? TEAM[winnerIdx].accent : "#ffffff");
+            }
+        }
+
+        // ==================== IMPROVED FIREWORKS SYSTEM ====================
+        let fwCanvas = document.getElementById('fireworksCanvas');
+        let fwCtx = fwCanvas.getContext('2d');
+        let fwParticles = [];
+        let fwAnimationId = null;
+
+        // Палитра ярких дополнительных цветов для праздничности
+        const CELEBRATION_COLORS = ["#FFD700", "#FF1493", "#00FFFF", "#FF4500", "#ADFF2F", "#FFFFFF"];
+
+        function initFireworks(mainColor) {
+            stopFireworks();
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+            loopFireworks(mainColor);
+        }
+
+        function stopFireworks() {
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            fwParticles = [];
+            fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; 
+                this.y = y; 
+                this.color = color;
+                // Более мощный разлет (скорость)
+                const angle = Math.random() * Math.PI * 2;
+                const force = Math.random() * 12 + 2; 
+                this.velocity = { 
+                    x: Math.cos(angle) * force, 
+                    y: Math.sin(angle) * force 
+                };
+                this.alpha = 1; 
+                this.friction = 0.96; 
+                this.gravity = 0.15;
+                // Рандомный размер частицы для объема
+                this.radius = Math.random() * 3 + 1;
+            }
+            draw() {
+                fwCtx.save();
+                fwCtx.globalAlpha = this.alpha;
+                fwCtx.beginPath();
+                fwCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                fwCtx.fillStyle = this.color;
+                // Добавляем свечение частицам
+                fwCtx.shadowBlur = 10;
+                fwCtx.shadowColor = this.color;
+                fwCtx.fill();
+                fwCtx.restore();
+            }
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.008; // Частицы живут дольше
+            }
+        }
+
+        function createFirework(mainColor) {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * (fwCanvas.height * 0.5) + 100;
+            
+            // Выбираем цвет: либо основной цвет команды, либо случайный яркий из палитры
+            const explosionColor = Math.random() > 0.4 ? mainColor : CELEBRATION_COLORS[Math.floor(Math.random() * CELEBRATION_COLORS.length)];
+            
+            // Больше частиц для густоты (было 30, стало 80)
+            const particleCount = 80;
+            for (let i = 0; i < particleCount; i++) {
+                fwParticles.push(new Particle(x, y, explosionColor));
+            }
+        }
+
+        function loopFireworks(mainColor) {
+            // Очистка с легким шлейфом для эффекта движения
+            fwCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+            
+            if (Math.random() < 0.08) { // Частота выстрелов
+                createFirework(mainColor);
+            }
+            
+            fwParticles.forEach((p, i) => {
+                if (p.alpha <= 0) {
+                    fwParticles.splice(i, 1);
+                } else {
+                    p.update();
+                    p.draw();
+                }
+            });
+            fwAnimationId = requestAnimationFrame(() => loopFireworks(mainColor));
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
